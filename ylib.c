@@ -37,7 +37,7 @@ int indexOf(const char *big, const char *little) {
 }
 
 int base64encode(char *dst, const unsigned char *src, size_t len, size_t *out_len) {
-    const char base64char[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    static const char base64char[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     size_t i, j;
     for (i = 0, j = 0; i < len; i += 3, j++) {
         size_t remain = len - 3 * j;
@@ -63,7 +63,15 @@ int base64encode(char *dst, const unsigned char *src, size_t len, size_t *out_le
 }
 
 int base64decode(unsigned char *dst, const char *src, size_t len, size_t *out_len) {
-    const char base64char[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    static const char tab[128] = {
+        0,  0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,
+        0,  0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,
+        0,  0, 0, 0,   0, 0, 0, 0,   0, 0, 0,62,   0, 0, 0,63,
+        52,53,54,55,  56,57,58,59,  60,61, 0, 0,   0, 0, 0, 0,
+        0,  0, 1, 2,   3, 4, 5, 6,   7, 8, 9,10,  11,12,13,14,
+        15,16,17,18,  19,20,21,22,  23,24,25, 0,   0, 0, 0, 0,
+        0, 26,27,28,  29,30,31,32,  33,34,35,36,  37,38,39,40,
+        41,42,43,44,  45,46,47,48,  49,50,51, 0,   0, 0, 0, 0};
     int equalSignCount = 0;
     if (len % 4 == 0) {
         if (src[len-2] == '=') {
@@ -80,18 +88,18 @@ int base64decode(unsigned char *dst, const char *src, size_t len, size_t *out_le
     }
     size_t i, j;
     for ( i = 0, j = 0; i < len - equalSignCount; i += 4, j++) {
-        dst[j * 3] = (indexOfChar(base64char, src[i]) << 2) | (indexOfChar(base64char, src[i + 1]) >> 4);
+        dst[j * 3] = (tab[src[i]] << 2) | (tab[src[i + 1]] >> 4);
         size_t remain = len - 4 * i;
         if (remain < 4) {
             if (equalSignCount == 1) {
-                dst[i + 1] = ((indexOfChar(base64char, src[i + 1]) & 0xf) << 4) | (indexOfChar(base64char, src[i + 2]) >> 2);
+                dst[i + 1] = ((tab[src[i + 1]] & 0xf) << 4) | (tab[src[i + 2]] >> 2);
                 break;
             } else if (equalSignCount == 2) {
                 break;
             }
         }
-        dst[j * 3 + 1] = ((indexOfChar(base64char, src[i + 1]) & 0xf) << 4) | (indexOfChar(base64char, src[i + 2]) >> 2);
-        dst[j * 3 + 2] = (indexOfChar(base64char, src[i + 2]) >> 4 << 6) | indexOfChar(base64char, src[i + 3]);
+        dst[j * 3 + 1] = ((tab[src[i + 1]] & 0xf) << 4) | (tab[src[i + 2]] >> 2);
+        dst[j * 3 + 2] = (tab[src[i + 2]] << 6) | (tab[src[i + 3]]);
     }
     *out_len = j * 3 - equalSignCount;
     return 0;

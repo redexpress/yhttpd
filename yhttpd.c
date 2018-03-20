@@ -9,14 +9,16 @@
 #include <strings.h>
 #include <string.h>
 #include <sys/stat.h>
+#if USE_PTHREAD
 #include <pthread.h>
+#endif
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include "yhttpd.h"
 #include "ylib.h"
 
 #define SERVER_STRING "Server: yhttpd/0.0.1\r\n"
-#define SERV_PORT 8000
 #define MAXLINE 1024
 
 void accept_request(void *);
@@ -41,9 +43,9 @@ void accept_request(void *arg) {
     }
     size_t j = i;
     method[i] = '\0';
-    if (strcasecmp(method, "GET") && strcasecmp(method, "POST")) {
-        return;
-    }
+//    if (strcasecmp(method, "GET") && strcasecmp(method, "POST")) {
+//        return;
+//    }
     if (strcasecmp(method, "POST") == 0)
         cgi = true;
     i = 0;
@@ -147,7 +149,7 @@ int startup(u_short *port) {
     if (listen(httpd, 5) < 0) error_die("listen");
     return (httpd);
 }
-
+#if TEST == 0
 int main(void) {
     u_short port = SERV_PORT;
     int client_sock = -1;
@@ -158,10 +160,15 @@ int main(void) {
     for ( ; ; ) {
         client_sock = accept(server_sock, (struct sockaddr *)&client_name, &client_name_len);
         if (client_sock == -1) error_die("accept");
+#if USE_PTHREAD
         pthread_t newthread;
         if (pthread_create(&newthread , NULL, (void *)accept_request, (void *)(intptr_t)client_sock) != 0) {
             perror("pthread_create");
         }
+#else
+        accept_request((void *)(intptr_t)client_sock);
+#endif
     }
     return (0);
 }
+#endif
