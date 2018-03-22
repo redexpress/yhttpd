@@ -9,5 +9,7 @@ int base64encode(char *dst, const unsigned char *src, size_t len, size_t *out_le
 int base64decode(unsigned char *dst, const char *src, size_t len, size_t *out_len);
 ssize_t indexOfChar(const char *big, char c);
 void md5(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest);
+char *networkDate(long timestamp);
+char *networkDateNow(void);
 
 #endif /* ylib_h */

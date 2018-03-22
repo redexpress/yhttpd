@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <time.h>
 
 int substring(char *dst, const char *src, size_t begin, size_t end) {
     if (end < begin || strlen(src) < end) {
@@ -199,4 +201,23 @@ void md5(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest) {
     toBytes(d0, digest + 12);
 }
 
+char *networkDate(long timestamp) {
+    struct tm *timeptr = gmtime(&timestamp);
+    static const char wdayStr[][4] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+    static const char monStr[][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+    static char result[30];
+    sprintf(result, "%.3s, %.2d %.3s %d %.2d:%.2d:%.2d GMT",
+            wdayStr[timeptr->tm_wday],
+            timeptr->tm_mday,
+            monStr[timeptr->tm_mon],
+            1900 + timeptr->tm_year,
+            timeptr->tm_hour,
+            timeptr->tm_min, timeptr->tm_sec
+            );
+    return result;
+}
 
+char *now(void) {
+    time_t t = time(NULL);
+    return networkDate(t);
+}
