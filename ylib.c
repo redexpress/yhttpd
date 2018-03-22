@@ -205,7 +205,7 @@ char *networkDate(long timestamp) {
     struct tm *timeptr = gmtime(&timestamp);
     static const char wdayStr[][4] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
     static const char monStr[][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-    static char result[30];
+    static char result[38];
     sprintf(result, "%.3s, %.2d %.3s %d %.2d:%.2d:%.2d GMT",
             wdayStr[timeptr->tm_wday],
             timeptr->tm_mday,
